@@ -8,6 +8,8 @@ Needs Python 3.11 or later and Runnel 0.0.4 or later. Fully typed.
 pip install kinoforge-runnel
 ```
 
+Until the first release is on PyPI, install it from GitHub: `pip install git+https://github.com/kinoforge/runnel-py`.
+
 The package is imported as `runnel`.
 
 ## Enqueue a job
@@ -41,10 +43,12 @@ from runnel import AsyncClient, Job, JobContext, Worker
 
 worker = Worker(AsyncClient("http://runnel.internal:8700", "shop", token=os.environ["RUNNEL_KEY"]), ["emails"], concurrency=10)
 
+
 @worker.handle("welcome")
 async def welcome(job: Job, ctx: JobContext) -> dict[str, bool]:
     await mailer.send(job.payload["to"])
     return {"sent": True}
+
 
 worker.serve()
 ```
@@ -71,6 +75,7 @@ Return or raise one of these to choose what happens next:
 ```python
 from runnel import busy, fail
 
+
 @worker.handle("charge")
 async def charge(job: Job, ctx: JobContext) -> object:
     res = await payments.charge(job.payload)
@@ -90,6 +95,7 @@ async def start(job: Job, ctx: JobContext) -> object:
     task = await renderer.start(job.payload)
     return pending(task.id, 10)
 
+
 async def check(job: Job, ctx: JobContext) -> object:
     task = await renderer.status(job.handle)
     if task.running:
@@ -97,6 +103,7 @@ async def check(job: Job, ctx: JobContext) -> object:
     if task.lost:
         raise fail("renderer lost the task")
     return {"url": task.url}
+
 
 worker.handle("video.render", start, poll=check)
 ```
@@ -136,6 +143,7 @@ When a namespace has a callback secret, Runnel signs every callback. Check it be
 
 ```python
 from runnel import parse_callback
+
 
 @app.post("/hooks/runnel")
 def hook():
