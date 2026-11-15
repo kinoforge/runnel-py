@@ -1,0 +1,194 @@
+{
+  "header": "Runnel-Signature",
+  "vectors": [
+    {
+      "name": "signed with the only secret",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000000,
+      "max_age_seconds": 300,
+      "header": "t=1800000000,v1=6af1dab7197acdef4755f43d656e1cd73fbf3c85776871ebbff64c05fb481756",
+      "valid": true
+    },
+    {
+      "name": "signed with the newer of two secrets",
+      "secrets": [
+        "whsec_old",
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000000,
+      "max_age_seconds": 300,
+      "header": "t=1800000000,v1=6af1dab7197acdef4755f43d656e1cd73fbf3c85776871ebbff64c05fb481756",
+      "valid": true
+    },
+    {
+      "name": "signed with another secret",
+      "secrets": [
+        "whsec_old"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000000,
+      "max_age_seconds": 300,
+      "header": "t=1800000000,v1=6af1dab7197acdef4755f43d656e1cd73fbf3c85776871ebbff64c05fb481756",
+      "valid": false
+    },
+    {
+      "name": "body changed after signing",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":false}}}",
+      "now": 1800000000,
+      "max_age_seconds": 300,
+      "header": "t=1800000000,v1=6af1dab7197acdef4755f43d656e1cd73fbf3c85776871ebbff64c05fb481756",
+      "valid": false
+    },
+    {
+      "name": "signed 5 minutes ago, at the limit",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000300,
+      "max_age_seconds": 300,
+      "header": "t=1800000000,v1=6af1dab7197acdef4755f43d656e1cd73fbf3c85776871ebbff64c05fb481756",
+      "valid": true
+    },
+    {
+      "name": "signed 301 seconds ago",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000301,
+      "max_age_seconds": 300,
+      "header": "t=1800000000,v1=6af1dab7197acdef4755f43d656e1cd73fbf3c85776871ebbff64c05fb481756",
+      "valid": false
+    },
+    {
+      "name": "signed 301 seconds in the future",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1799999699,
+      "max_age_seconds": 300,
+      "header": "t=1800000000,v1=6af1dab7197acdef4755f43d656e1cd73fbf3c85776871ebbff64c05fb481756",
+      "valid": false
+    },
+    {
+      "name": "signed 10 minutes ago with a 15 minute limit",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000600,
+      "max_age_seconds": 900,
+      "header": "t=1800000000,v1=6af1dab7197acdef4755f43d656e1cd73fbf3c85776871ebbff64c05fb481756",
+      "valid": true
+    },
+    {
+      "name": "two v1 values, the second matches",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000000,
+      "max_age_seconds": 300,
+      "header": "t=1800000000,v1=24f6a80438b0b5d929deb6aa3d53b0f5f340c93f4b0ea820abee3f791d1d8054,v1=6af1dab7197acdef4755f43d656e1cd73fbf3c85776871ebbff64c05fb481756",
+      "valid": true
+    },
+    {
+      "name": "spaces after commas",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000000,
+      "max_age_seconds": 300,
+      "header": "t=1800000000, v1=6af1dab7197acdef4755f43d656e1cd73fbf3c85776871ebbff64c05fb481756",
+      "valid": true
+    },
+    {
+      "name": "no v1",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000000,
+      "max_age_seconds": 300,
+      "header": "t=1800000000",
+      "valid": false
+    },
+    {
+      "name": "no t",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000000,
+      "max_age_seconds": 300,
+      "header": "v1=6af1dab7197acdef4755f43d656e1cd73fbf3c85776871ebbff64c05fb481756",
+      "valid": false
+    },
+    {
+      "name": "t is not a number",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000000,
+      "max_age_seconds": 300,
+      "header": "t=soon,v1=6af1dab7197acdef4755f43d656e1cd73fbf3c85776871ebbff64c05fb481756",
+      "valid": false
+    },
+    {
+      "name": "empty header",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000000,
+      "max_age_seconds": 300,
+      "header": "",
+      "valid": false
+    },
+    {
+      "name": "empty secret is ignored",
+      "secrets": [
+        "",
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000000,
+      "max_age_seconds": 300,
+      "header": "t=1800000000,v1=6af1dab7197acdef4755f43d656e1cd73fbf3c85776871ebbff64c05fb481756",
+      "valid": true
+    },
+    {
+      "name": "uppercase hex",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "{\"event\":\"job.completed\",\"delivery\":1,\"job\":{\"id\":\"01a1e01b-7fb6-7ace-ab56-982c9c129e34\",\"namespace\":\"shop\",\"queue\":\"emails\",\"kind\":\"welcome\",\"state\":\"completed\",\"attempt\":1,\"result\":{\"sent\":true}}}",
+      "now": 1800000000,
+      "max_age_seconds": 300,
+      "header": "t=1800000000,v1=6AF1DAB7197ACDEF4755F43D656E1CD73FBF3C85776871EBBFF64C05FB481756",
+      "valid": false
+    },
+    {
+      "name": "empty body",
+      "secrets": [
+        "whsec_new"
+      ],
+      "body": "",
+      "now": 1800000000,
+      "max_age_seconds": 300,
+      "header": "t=1800000000,v1=165296b0482496422ffd24140b45896aac840ec57284d032b7ea995c79030402",
+      "valid": true
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+[build-system]
+requires = ["hatchling==1.33.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kinoforge-runnel"
+version = "0.1.0b1"
+description = "Python client and worker for Runnel, the job queue"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+dependencies = ["grpcio>=1.85.1,<2", "protobuf>=7.35.1,<8"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Framework :: AsyncIO",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Topic :: System :: Distributed Computing",
+  "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/kinoforge/runnel-py"
+Source = "https://github.com/kinoforge/runnel-py"
+Runnel = "https://github.com/kinoforge/runnel"
+
+[dependency-groups]
+dev = [
+  "build==1.6.1",
+  "grpcio-tools==1.85.1",
+  "mypy==2.4.1",
+  "mypy-protobuf==5.1.0",
+  "pytest==9.2.0",
+  "pytest-asyncio==1.4.1",
+  "ruff==0.17.3",
+  "types-grpcio==1.85.0.20261028",
+  "types-protobuf==7.35.1.20260906",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/runnel"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/runnel", "README.md", "LICENSE", "CHANGELOG.md"]
+
+[tool.ruff]
+line-length = 140
+target-version = "py311"
+extend-exclude = ["src/runnel/v1"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "ASYNC", "PL", "PT", "RET", "C4", "PIE", "TRY"]
+ignore = ["PLR0913", "PLR2004", "TRY003", "PLR0911", "TRY400", "ASYNC109"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+files = ["src", "tests"]
+exclude = ["src/runnel/v1/.*_pb2(_grpc)?\\.py$"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests/unit"]
