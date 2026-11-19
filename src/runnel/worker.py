@@ -233,7 +233,8 @@ class Worker:
                 return
             await self._finish(r.pb, outcome)
         finally:
-            self._running.pop(r.pb.id, None)
+            if self._running.get(r.pb.id) is r:
+                del self._running[r.pb.id]
             if self._feed is not None:
                 self._feed.grant(1)
 
@@ -302,13 +303,23 @@ class Worker:
         return [Job.from_pb(j) for j in res.jobs]
 
     async def _beats(self) -> None:
-        beat: asyncio.Task[None] | None = None
-        while not self._done.is_set():
-            await pause(self.lease / 3, self._done)
-            if beat is None or beat.done():
+        loop = asyncio.get_running_loop()
+        every = self.lease / 3
+        due = loop.time() + every
+        stopped = asyncio.ensure_future(self._done.wait())
+        try:
+            while not self._done.is_set():
+                await pause(max(0.0, due - loop.time()), self._done)
+                if self._done.is_set():
+                    return
                 beat = asyncio.create_task(self._heartbeat())
-        if beat is not None:
-            beat.cancel()
+                await asyncio.wait({beat, stopped}, return_when=asyncio.FIRST_COMPLETED)
+                if not beat.done():
+                    beat.cancel()
+                    return
+                due = max(due + every, loop.time())
+        finally:
+            stopped.cancel()
 
     async def _heartbeat(self) -> None:
         sent = dict(self._running)
