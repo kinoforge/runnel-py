@@ -152,6 +152,8 @@ class Worker:
             raise RuntimeError("runnel: worker is already running")
         if not self.queues or not self._handlers:
             raise ValueError("runnel: a worker needs queues and handlers")
+        if self.concurrency <= 0 or self.lease <= 0:
+            raise ValueError("runnel: concurrency and lease must be positive")
         config = FeedConfig(
             client=self.client,
             worker=self.id,
@@ -205,7 +207,8 @@ class Worker:
             return
         now = self.client.clock.now()
         until = pb.lease_until.seconds + pb.lease_until.nanos / 1e9 if pb.HasField("lease_until") else now + self.lease
-        r = _Run(pb, Job.from_pb(pb), until - now, until)
+        granted = until - now
+        r = _Run(pb, Job.from_pb(pb), min(self.lease, granted) if granted > 0 else self.lease, until)
         self._running[pb.id] = r
         r.done = self._spawn(self._execute(r))
 
@@ -246,8 +249,22 @@ class Worker:
         if fn is None:
             return fail(f'kind "{r.job.kind}" has a handle but no poller').outcome
         ctx = JobContext(self, r)
-        r.cancellable = inspect.iscoroutinefunction(fn)
-        r.task = asyncio.ensure_future(fn(r.job, ctx) if r.cancellable else asyncio.to_thread(fn, r.job, ctx))
+        is_coro = inspect.iscoroutinefunction(fn)
+        value, outcome = await self._run_task(r, fn(r.job, ctx) if is_coro else asyncio.to_thread(fn, r.job, ctx), is_coro)
+        if outcome is not None:
+            return outcome
+        if inspect.isawaitable(value):
+            value, outcome = await self._run_task(r, value, True)
+            if outcome is not None:
+                return outcome
+        aborted = self._aborted_outcome(r.reason)
+        if aborted is not None:
+            return aborted
+        return value.outcome if isinstance(value, Control) else done(value)
+
+    async def _run_task(self, r: _Run, aw: Awaitable[Any], cancellable: bool) -> tuple[Any, Outcome | None]:
+        r.cancellable = cancellable
+        r.task = asyncio.ensure_future(aw)
         if r.reason is not None and r.cancellable:
             r.task.cancel()
         try:
@@ -256,22 +273,25 @@ class Worker:
             r.task.cancel()
             raise
         if r.task.cancelled():
-            return self._classify(asyncio.CancelledError(), r.reason)
+            return None, self._classify(asyncio.CancelledError(), r.reason)
         err = r.task.exception()
         if err is not None:
-            return self._classify(err, r.reason)
-        value = r.task.result()
-        if inspect.isawaitable(value):
-            value = await value
-        return value.outcome if isinstance(value, Control) else done(value)
+            return None, self._classify(err, r.reason)
+        return r.task.result(), None
 
-    def _classify(self, err: BaseException, reason: BaseException | None) -> Outcome:
+    def _aborted_outcome(self, reason: BaseException | None) -> Outcome | None:
         if isinstance(reason, ShutdownError):
             return release()
         if isinstance(reason, JobTimeoutError):
             return retry(f"timed out after {reason.timeout:g}s")
         if isinstance(reason, DeadlineError):
             return fail("deadline passed").outcome
+        return None
+
+    def _classify(self, err: BaseException, reason: BaseException | None) -> Outcome:
+        aborted = self._aborted_outcome(reason)
+        if aborted is not None:
+            return aborted
         return err.outcome if isinstance(err, Control) else retry(err)
 
     async def _finish(self, pb: types_pb2.Job, outcome: Outcome) -> None:

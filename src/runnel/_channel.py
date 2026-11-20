@@ -16,6 +16,8 @@ def target(url: str) -> Target:
     u = urlsplit(url)
     if u.scheme not in ("http", "https") or not u.hostname:
         raise ValueError(f"runnel: url must be http:// or https://, got {url!r}")
+    if u.username is not None or u.password is not None or (u.path not in ("", "/")) or u.query or u.fragment:
+        raise ValueError("runnel: url must contain only scheme, host and optional port; pass credentials via token=")
     host = f"[{u.hostname}]" if ":" in u.hostname else u.hostname
     port = u.port or (443 if u.scheme == "https" else 80)
     return Target(f"{host}:{port}", u.scheme == "https")

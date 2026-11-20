@@ -68,6 +68,7 @@ class StreamFeed:
         self._q: asyncio.Queue[worker_pb2.WorkRequest | None] | None = None
         self._call: Any = None
         self._stopped = False
+        self._stop_event = asyncio.Event()
         self._aborted = asyncio.Event()
 
     async def run(self) -> None:
@@ -97,7 +98,7 @@ class StreamFeed:
                 self._call = None
                 q.put_nowait(None)
             if not self._stopped:
-                await backoff.wait(self._aborted)
+                await backoff.wait(self._stop_event)
 
     def grant(self, n: int) -> None:
         if n > 0 and self._q is not None:
@@ -105,6 +106,7 @@ class StreamFeed:
 
     def stop(self) -> None:
         self._stopped = True
+        self._stop_event.set()
         if self._q is not None:
             self._q.put_nowait(None)
 
@@ -165,7 +167,10 @@ class PollFeed:
 
     def stop(self) -> None:
         self._stopped = True
+        self._aborted.set()
         self._wake.set()
+        if self._call is not None:
+            self._call.cancel()
 
     def abort(self) -> None:
         self.stop()

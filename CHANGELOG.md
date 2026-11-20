@@ -6,6 +6,12 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Fixed
 
+- After a heartbeat, a job's lease is renewed by the lease the server granted at claim time, at most the worker's `lease`. A server whose `max_lease` is shorter than the worker's `lease` no longer leaves the worker thinking it holds a job the server has taken back.
+- A handler that returns normally after its timeout, deadline or the worker's shutdown ended its context is reported as that timeout, deadline or release, not as done.
+- Stopping an idle polling worker no longer waits for its long-poll claim (up to 20s) or a reconnect backoff to end.
+- A worker refuses a `concurrency` or `lease` that is not positive.
+- A plain function that returns a coroutine is awaited like an async handler, with the same cancellation and error handling.
+- A URL with a user, password, path or query is refused with `ValueError` instead of having those parts silently dropped. Pass credentials with `token=`.
 - A heartbeat that times out is followed by the next one at once, as in the Go worker. Before, the next beat was skipped, so one slow `Extend` could lose every running job's lease.
 - When a job comes back to the same worker while its earlier run is still ending, the earlier run no longer removes the new one, which kept its heartbeats.
 
