@@ -209,6 +209,9 @@ class Worker:
         until = pb.lease_until.seconds + pb.lease_until.nanos / 1e9 if pb.HasField("lease_until") else now + self.lease
         granted = until - now
         r = _Run(pb, Job.from_pb(pb), min(self.lease, granted) if granted > 0 else self.lease, until)
+        old = self._running.get(pb.id)
+        if old is not None:
+            self._lose(pb.id, old)
         self._running[pb.id] = r
         r.done = self._spawn(self._execute(r))
 

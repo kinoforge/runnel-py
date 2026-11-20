@@ -6,6 +6,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Fixed
 
+- When the server hands a job out again while this worker still runs an earlier attempt of it, for example after a missed heartbeat, the earlier run is ended as lease lost. Before, it was forgotten and kept running, and `stop()` waited for it forever.
 - After a heartbeat, a job's lease is renewed by the lease the server granted at claim time, at most the worker's `lease`. A server whose `max_lease` is shorter than the worker's `lease` no longer leaves the worker thinking it holds a job the server has taken back.
 - A handler that returns normally after its timeout, deadline or the worker's shutdown ended its context is reported as that timeout, deadline or release, not as done.
 - Stopping an idle polling worker no longer waits for its long-poll claim (up to 20s) or a reconnect backoff to end.
